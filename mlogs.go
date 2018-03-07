@@ -7,17 +7,52 @@ import (
 	"path"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 )
 
 var (
 	LogFile = ""
+	LogUuid = true
+
+	logUuidCache = make(map[int64]string)
+	logUuidMutex = sync.Mutex{}
 )
 
 // InitLogPrefix used to set log file prefix
 // empty prefix will print to stdout
 func InitLogPrefix(s string) {
 	LogFile = s
+}
+
+func LogUuidCacheSize() int {
+	logUuidMutex.Lock()
+	num := len(logUuidCache)
+	logUuidMutex.Unlock()
+	return num
+}
+
+func LogSetUuid(uuid string) {
+	logUuidMutex.Lock()
+	logUuidCache[GoId()] = uuid
+	logUuidMutex.Unlock()
+}
+
+func LogGetUuid() string {
+	logUuidMutex.Lock()
+	uuid := logUuidCache[GoId()]
+	logUuidMutex.Unlock()
+	if uuid == "" {
+		uuid = Uuid()
+		LogSetUuid(uuid)
+	}
+	return uuid
+}
+
+func LogDelUuid() {
+	logUuidMutex.Lock()
+	defer logUuidMutex.Unlock()
+	delete(logUuidCache, GoId())
 }
 
 func logwrite(s string) {
@@ -55,6 +90,9 @@ func logf(f interface{}, args ...interface{}) string {
 	key := fmt.Sprintf("[%s] %s:%s():%d: ",
 		time.Now().Format(STD_TIME_FORMAT),
 		path.Base(file), path.Base(fun.Name()), line)
+	if LogUuid {
+		key += fmt.Sprintf("%s:%d ", LogGetUuid(), LogUuidCacheSize())
+	}
 	s := strings.TrimSpace(fmt.Sprintf(fs, args...))
 	logwrite(key + s)
 	return s
