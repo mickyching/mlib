@@ -27,7 +27,7 @@ func Int(a interface{}) int64 {
 	case reflect.Float32, reflect.Float64:
 		return int64(val.Float())
 	case reflect.String:
-		s := strings.TrimSpace(val.String())
+		s := val.String()
 		if s == "" || s == "None" {
 			return 0
 		}
@@ -57,7 +57,7 @@ func Float(a interface{}) float64 {
 	case reflect.Float32, reflect.Float64:
 		return val.Float()
 	case reflect.String:
-		s := strings.TrimSpace(val.String())
+		s := val.String()
 		if s == "" || s == "None" {
 			return 0.0
 		}
