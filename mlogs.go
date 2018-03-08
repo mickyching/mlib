@@ -25,6 +25,7 @@ func InitLogPrefix(s string) {
 	LogFile = s
 }
 
+// LogUuidCacheSize returns uuid-cache size
 func LogUuidCacheSize() int {
 	logUuidMutex.Lock()
 	num := len(logUuidCache)
@@ -32,23 +33,22 @@ func LogUuidCacheSize() int {
 	return num
 }
 
+// LogSetUuid set uuid
 func LogSetUuid(uuid string) {
 	logUuidMutex.Lock()
 	logUuidCache[GoId()] = uuid
 	logUuidMutex.Unlock()
 }
 
+// LogGetUuid returns current goroutine's uuid
 func LogGetUuid() string {
 	logUuidMutex.Lock()
 	uuid := logUuidCache[GoId()]
 	logUuidMutex.Unlock()
-	if uuid == "" {
-		uuid = Uuid()
-		LogSetUuid(uuid)
-	}
 	return uuid
 }
 
+// LogDelUuid delete current goroutine's uuid
 func LogDelUuid() {
 	logUuidMutex.Lock()
 	defer logUuidMutex.Unlock()
@@ -91,7 +91,9 @@ func logf(f interface{}, args ...interface{}) string {
 		time.Now().Format(STD_TIME_FORMAT),
 		path.Base(file), path.Base(fun.Name()), line)
 	if LogUuid {
-		key += fmt.Sprintf("%s:%d ", LogGetUuid(), LogUuidCacheSize())
+		if uuid := LogGetUuid(); uuid != "" {
+			key += fmt.Sprintf("%s:%d ", uuid, LogUuidCacheSize())
+		}
 	}
 	s := strings.TrimSpace(fmt.Sprintf(fs, args...))
 	logwrite(key + s)
