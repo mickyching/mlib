@@ -22,6 +22,9 @@ import (
 // **profile using pprof and graphviz**
 //   go tool pprof ./binary URL/debug/pprof/profile // CPU-profile, MEM-heap
 //   usful cmd: top10/web [func]/list [func]
+// **useful mux/handler**
+//   NewServeMux() // create mux replace DefaultServeMux
+//   FileServer, NotFoundHandler, RedirectHandler
 func HttpServe(addr string, route func(w http.ResponseWriter, r *http.Request)) error {
 	http.HandleFunc("/", route)
 	return http.ListenAndServe(addr, nil)

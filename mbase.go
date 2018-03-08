@@ -8,11 +8,42 @@ import (
 	"os/exec"
 	"path"
 	"runtime"
+	"runtime/pprof"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 )
+
+// StartProfile call pprof to start profile
+// StartProfile when profiling already enabled will panic.
+func StartProfile(fcpu string) {
+	f, err := os.Create(fcpu)
+	if err != nil {
+		Fatalf(err)
+	}
+	if err := pprof.StartCPUProfile(f); err != nil {
+		Fatalf(err)
+	}
+}
+
+// StopProfile stop profiling
+func StopProfile() {
+	pprof.StopCPUProfile()
+}
+
+// MemProfile write mem info to file, can be called at any time.
+func MemProfile(fmem string) {
+	f, err := os.Create(fmem)
+	if err != nil {
+		Fatalf(err)
+	}
+	runtime.GC()
+	if err := pprof.WriteHeapProfile(f); err != nil {
+		Fatalf(err)
+	}
+	f.Close()
+}
 
 // RunCmd exec cmd with args
 func RunCmd(cmd string, args ...string) (string, error) {
