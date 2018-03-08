@@ -14,6 +14,7 @@ import (
 // **socket: too many open files**
 //   ulimit -a | grep open      // shows 1024
 //   ulimit -n 65535            // set a large number
+//   lsof -n|awk '{print $2}'|sort|uniq -c|sort -nr|head // list num pid
 // **connect: cannot asign requested address
 //   cat /proc/net/sockstat     // shows socket usage status
 // **apr_socket_recv: Connection reset by peer**
