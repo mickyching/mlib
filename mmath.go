@@ -83,3 +83,36 @@ func LinearFit(sx []float64, sy []float64) (k float64, b float64) {
 
 	return k, b
 }
+
+// CmpFloats compare slice
+// a < b return -1
+// a > b return 1
+// else return 0
+func CmpFloats(a []float64, b []float64) int {
+	if len(a) != len(b) {
+		Fatalf("length not same %d != %d", len(a), len(b))
+	}
+
+	aa := 0
+	bb := 0
+	for i := 0; i < len(a); i++ {
+		if a[i] > b[i] {
+			aa++
+		} else if a[i] < b[i] {
+			bb++
+		} else {
+			return 0
+		}
+		if aa != 0 && bb != 0 {
+			return 0
+		}
+	}
+
+	if aa == len(a) {
+		return 1
+	} else if bb == len(a) {
+		return -1
+	}
+	Fatalf("unreachable code")
+	return 0
+}
