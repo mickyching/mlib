@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"os"
 	"reflect"
 	"sort"
 	"strconv"
@@ -256,4 +257,34 @@ func JsonFormat(data interface{}) string {
 	}
 
 	return string(mi)
+}
+
+// JsonSave save var into file
+func JsonSave(fname string, v interface{}) {
+	f, err := os.Create(fname)
+	if err != nil {
+		Fatalf(err)
+	}
+	defer f.Close()
+
+	e := json.NewEncoder(f)
+	err = e.Encode(v)
+	if err != nil {
+		Fatalf(err)
+	}
+}
+
+// JsonLoad load var from file
+func JsonLoad(fname string, v interface{}) {
+	f, err := os.Open(fname)
+	if err != nil {
+		Fatalf(err)
+	}
+	defer f.Close()
+
+	d := json.NewDecoder(f)
+	err = d.Decode(v)
+	if err != nil {
+		Fatalf(err)
+	}
 }
