@@ -1,9 +1,11 @@
 package mlib
 
 import (
+	"bufio"
 	"bytes"
 	"crypto/rand"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path"
@@ -118,4 +120,43 @@ func Uuid() string {
 	}
 
 	return fmt.Sprintf("%x-%x-%x-%x-%x-%x", unix32bits, buff[0:2], buff[2:4], buff[4:6], buff[6:8], buff[8:])
+}
+
+// Lio is line-based bufio
+type Lio struct {
+	r *bufio.Scanner
+	w *bufio.Writer
+}
+
+// NewLio return line-io
+func NewLio(f interface{}) *Lio {
+	l := new(Lio)
+	if r, ok := f.(io.Reader); ok {
+		l.r = bufio.NewScanner(r)
+		l.r.Split(bufio.ScanLines)
+	}
+	if w, ok := f.(io.Writer); ok {
+		l.w = bufio.NewWriterSize(w, 64*1024)
+	}
+	return l
+}
+
+// Read read line to lio
+func (self *Lio) Read() bool {
+	return self.r.Scan()
+}
+
+// Line get line from lio
+func (self *Lio) Line() string {
+	return self.r.Text()
+}
+
+// Write write line to lio
+func (self *Lio) Write(line string) {
+	self.w.WriteString(line + "\n")
+}
+
+// Flush flush lio to file
+func (self *Lio) Flush() {
+	self.w.Flush()
 }
