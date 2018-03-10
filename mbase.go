@@ -131,12 +131,15 @@ type Lio struct {
 // NewLio return line-io
 func NewLio(f interface{}) *Lio {
 	l := new(Lio)
+	bufsize := 128*1024
 	if r, ok := f.(io.Reader); ok {
+		buf := make([]byte, bufsize)
 		l.r = bufio.NewScanner(r)
+		l.r.Buffer(buf, bufsize)
 		l.r.Split(bufio.ScanLines)
 	}
 	if w, ok := f.(io.Writer); ok {
-		l.w = bufio.NewWriterSize(w, 64*1024)
+		l.w = bufio.NewWriterSize(w, bufsize)
 	}
 	return l
 }
