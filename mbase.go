@@ -82,7 +82,7 @@ func CreateFile(fname string) error {
 }
 
 // GoFunc run func with num concurrency routines
-func GoFunc(f func(), num int) *sync.WaitGroup {
+func GoFunc(num int, f func()) *sync.WaitGroup {
 	wg := sync.WaitGroup{}
 	if num < 1 {
 		return &wg
