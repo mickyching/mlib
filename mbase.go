@@ -86,6 +86,34 @@ func CreateFile(fname string) error {
 	return nil
 }
 
+// ResetFile try to create and write file
+func ResetFile(fname, info string) error {
+	if err := CreateFile(fname); err != nil {
+		return err
+	}
+	f, err := os.Create(fname)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	f.WriteString(info)
+	return nil
+}
+
+// WriteFile try to create file and append info to file
+func WriteFile(fname, info string) error {
+	if err := CreateFile(fname); err != nil {
+		return err
+	}
+	f, err := os.OpenFile(fname, os.O_WRONLY|os.O_APPEND, 0644)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	f.WriteString(info)
+	return nil
+}
+
 // GoFunc run func with num concurrency routines
 func GoFunc(num int, f func()) *sync.WaitGroup {
 	wg := sync.WaitGroup{}
