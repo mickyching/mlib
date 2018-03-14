@@ -7,52 +7,18 @@ import (
 	"path"
 	"runtime"
 	"strings"
-	"sync"
 	"time"
 )
 
 var (
 	LogFile = ""
 	LogUuid = true
-
-	logUuidCache = make(map[int64]string)
-	logUuidMutex = sync.Mutex{}
 )
 
 // InitLogPrefix used to set log file prefix
 // empty prefix will print to stdout
 func InitLogPrefix(s string) {
 	LogFile = s
-}
-
-// LogUuidCacheSize returns uuid-cache size
-func LogUuidCacheSize() int {
-	logUuidMutex.Lock()
-	num := len(logUuidCache)
-	logUuidMutex.Unlock()
-	return num
-}
-
-// LogSetUuid set uuid
-func LogSetUuid(uuid string) {
-	logUuidMutex.Lock()
-	logUuidCache[GoId()] = uuid
-	logUuidMutex.Unlock()
-}
-
-// LogGetUuid returns current goroutine's uuid
-func LogGetUuid() string {
-	logUuidMutex.Lock()
-	uuid := logUuidCache[GoId()]
-	logUuidMutex.Unlock()
-	return uuid
-}
-
-// LogDelUuid delete current goroutine's uuid
-func LogDelUuid() {
-	logUuidMutex.Lock()
-	defer logUuidMutex.Unlock()
-	delete(logUuidCache, GoId())
 }
 
 func logwrite(s string) {
@@ -79,20 +45,24 @@ func logwrite(s string) {
 // 1. logf(s)
 // 2. logf(fmt, v...)
 // 3. logf(any, v...)
-func logf(f interface{}, args ...interface{}) string {
+func logf(level string, f interface{}, args ...interface{}) string {
 	fs, ok := f.(string)
 	if !ok {
 		fs = fmt.Sprintf("%v", f) + strings.Repeat(" [%v]", len(args))
 	}
 
 	pc, file, line, _ := runtime.Caller(2)
-	fun := runtime.FuncForPC(pc)
-	key := fmt.Sprintf("[%s] %s:%s():%d: ",
-		time.Now().Format(STD_TIME_FORMAT),
-		path.Base(file), path.Base(fun.Name()), line)
+	fun := runtime.FuncForPC(pc).Name()
+	fn := len(fun)
+	if fn > 20 {
+		fun = "..." + fun[fn-16:fn-1]
+	}
+	key := fmt.Sprintf("[%s] %s %s:%s():%d: ",
+		time.Now().Format(STD_TIME_FORMAT), level,
+		path.Base(file), fun, line)
 	if LogUuid {
-		if uuid := LogGetUuid(); uuid != "" {
-			key += fmt.Sprintf("%s:%d ", uuid, LogUuidCacheSize())
+		if uuid := GetUuid(); uuid != "" {
+			key += fmt.Sprintf("%s:%d ", uuid, UuidCacheSize())
 		}
 	}
 	s := strings.TrimSpace(fmt.Sprintf(fs, args...))
@@ -102,20 +72,20 @@ func logf(f interface{}, args ...interface{}) string {
 
 // Debugf log with debug level
 func Debugf(f interface{}, args ...interface{}) {
-	logf(f, args...)
+	logf("DEBUG", f, args...)
 }
 
 // Infof log with info level
 func Infof(f interface{}, args ...interface{}) {
-	logf(f, args...)
+	logf("INFOF", f, args...)
 }
 
 // Errorf log with error level
 func Errorf(f interface{}, args ...interface{}) error {
-	return errors.New(logf(f, args...))
+	return errors.New(logf("ERROR", f, args...))
 }
 
 // Fatalf log with fatal level
 func Fatalf(f interface{}, args ...interface{}) {
-	panic(logf(f, args...))
+	panic(logf("FATAL", f, args...))
 }

@@ -17,6 +17,11 @@ import (
 	"time"
 )
 
+var (
+	UuidCache = make(map[int64]string)
+	UuidMutex = sync.RWMutex{}
+)
+
 // StartProfile call pprof to start profile
 // StartProfile when profiling already enabled will panic.
 func StartProfile(fcpu string) {
@@ -122,6 +127,36 @@ func Uuid() string {
 	return fmt.Sprintf("%x-%x-%x-%x-%x-%x", unix32bits, buff[0:2], buff[2:4], buff[4:6], buff[6:8], buff[8:])
 }
 
+// UuidCacheSize returns uuid-cache size
+func UuidCacheSize() int {
+	UuidMutex.RLock()
+	num := len(UuidCache)
+	UuidMutex.RUnlock()
+	return num
+}
+
+// SetUuid set uuid
+func SetUuid(uuid string) {
+	UuidMutex.Lock()
+	UuidCache[GoId()] = uuid
+	UuidMutex.Unlock()
+}
+
+// GetUuid returns current goroutine's uuid
+func GetUuid() string {
+	UuidMutex.RLock()
+	uuid := UuidCache[GoId()]
+	UuidMutex.RUnlock()
+	return uuid
+}
+
+// DelUuid delete current goroutine's uuid
+func DelUuid() {
+	UuidMutex.Lock()
+	defer UuidMutex.Unlock()
+	delete(UuidCache, GoId())
+}
+
 // Lio is line-based bufio
 type Lio struct {
 	r *bufio.Scanner
@@ -131,7 +166,7 @@ type Lio struct {
 // NewLio return line-io
 func NewLio(f interface{}) *Lio {
 	l := new(Lio)
-	bufsize := 128*1024
+	bufsize := 128 * 1024
 	if r, ok := f.(io.Reader); ok {
 		buf := make([]byte, bufsize)
 		l.r = bufio.NewScanner(r)
