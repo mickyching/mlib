@@ -31,6 +31,7 @@ func HttpServe(addr string, route func(w http.ResponseWriter, r *http.Request)) 
 	return http.ListenAndServe(addr, nil)
 }
 
+// HttpPost post request to url
 func HttpPost(url string, reqs, resp interface{}, timeout int) error {
 	body, err := json.Marshal(reqs)
 	if err != nil {
@@ -60,6 +61,7 @@ func HttpPost(url string, reqs, resp interface{}, timeout int) error {
 	return nil
 }
 
+// HttpDelete run delete method to url
 func HttpDelete(url string, resp interface{}, timeout int) error {
 	client := &http.Client{
 		Timeout: time.Duration(timeout) * time.Second,
