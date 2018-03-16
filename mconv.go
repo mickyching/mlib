@@ -128,6 +128,14 @@ func TimeStr(t time.Time) string {
 	return t.Format(STD_TIME_FORMAT)
 }
 
+// Ife looks like t ? a : b
+func Ife(t bool, a, b interface{}) interface{} {
+	if t {
+		return a
+	}
+	return b
+}
+
 // StrAlign returns string with fixed width
 func StrAlign(s string, width int) string {
 	blen := len(s)
