@@ -12,10 +12,6 @@ import (
 	"time"
 )
 
-var (
-	Glogger = (*Logger)(nil)
-)
-
 // mutex deadlock with dirty
 type Logger struct {
 	pre string // log filename prefix, empty pre means log to stdio
@@ -122,7 +118,9 @@ func NewLogger(pre string, size int64) *Logger {
 
 // InitLogger init global logger
 func InitLogger(pre string, size int64) {
-	Glogger = NewLogger(pre, size)
+	once.Do(func() {
+		Glogger = NewLogger(pre, size)
+	})
 }
 
 func logwrite(s string) {
@@ -144,7 +142,7 @@ func logf(level string, f interface{}, args ...interface{}) string {
 	}
 
 	pc, file, line, _ := runtime.Caller(2)
-	key := fmt.Sprintf("[%s] %s %s:%s():%d ", time.Now().Format(STD_TIME_FORMAT),
+	key := fmt.Sprintf("[%s] %s %s:%s():%d ", time.Now().Format(TIME_FORMAT),
 		level, path.Base(file), runtime.FuncForPC(pc).Name(), line)
 	if uuid := GetUuid(); uuid != "" {
 		key += fmt.Sprintf("%s (%d) ", uuid, UuidCacheSize())

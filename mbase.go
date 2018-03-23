@@ -17,11 +17,6 @@ import (
 	"time"
 )
 
-var (
-	UuidCache = make(map[int64]string)
-	UuidMutex = sync.RWMutex{}
-)
-
 // StartProfile call pprof to start profile
 // StartProfile when profiling already enabled will panic.
 func StartProfile(fcpu string) {

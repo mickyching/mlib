@@ -91,7 +91,7 @@ func Time(a interface{}) time.Time {
 			s += ".000"
 		}
 
-		t, err := time.Parse(STD_TIME_FORMAT, s)
+		t, err := time.Parse(TIME_FORMAT, s)
 		if err != nil {
 			Fatalf(err)
 		}
@@ -125,7 +125,7 @@ func DateStr(t time.Time) string {
 
 // TimeStr returns time's date-time string
 func TimeStr(t time.Time) string {
-	return t.Format(STD_TIME_FORMAT)
+	return t.Format(TIME_FORMAT)
 }
 
 // Ife looks like t ? a : b

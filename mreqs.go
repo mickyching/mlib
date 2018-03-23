@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -90,4 +92,92 @@ func HttpDelete(url string, resp interface{}, timeout int) error {
 	}
 
 	return nil
+}
+
+// RateLimiter can be used to limit request rate
+type RateLimiter struct {
+	ticker *time.Ticker  // const duration ticker
+	yield  int64         // const yield balls each duration
+	limit  int64         // const bucket size
+	balls  int64         // atomic current available balls
+	lock   sync.Mutex    // lock allow function include check+set two step
+	ch     chan struct{} // channel used to wait balls
+}
+
+// NewRateLimiter create a rate-limiter
+func NewRateLimiter(dur time.Duration, yield, limit int64) *RateLimiter {
+	r := &RateLimiter{
+		ticker: time.NewTicker(dur),
+		yield:  yield,
+		limit:  limit,
+		balls:  0,
+		ch:     make(chan struct{}),
+		lock:   sync.Mutex{},
+	}
+	go r.run()
+	return r
+}
+
+func (self *RateLimiter) run() {
+	for range self.ticker.C {
+		if atomic.LoadInt64(&self.balls)+self.yield < self.limit {
+			atomic.AddInt64(&self.balls, self.yield)
+		} else {
+			atomic.StoreInt64(&self.balls, self.limit)
+		}
+
+		for atomic.LoadInt64(&self.balls) > 0 {
+			select {
+			case <-self.ch:
+				atomic.AddInt64(&self.balls, -1)
+			default:
+				break
+			}
+		}
+	}
+}
+
+// Allow return if has balls
+func (self *RateLimiter) Allow() bool {
+	self.lock.Lock()
+	defer self.lock.Unlock()
+
+	if atomic.LoadInt64(&self.balls) < 1 {
+		return false
+	}
+	atomic.AddInt64(&self.balls, -1)
+	return true
+}
+
+// Wait will wait until has balls
+func (self *RateLimiter) Wait() {
+	if self.Allow() {
+		return
+	}
+
+	var s struct{}
+	self.ch <- s
+}
+
+// InitLimiter init global limiter
+func InitLimiter(dur time.Duration, yield, limit int64) {
+	once.Do(func() {
+		Glimiter = NewRateLimiter(dur, yield, limit)
+	})
+}
+
+// LimiterAllow check global limiter
+func LimiterAllow() bool {
+	if Glimiter == nil {
+		InitLimiter(10*time.Millisecond, 10, 100)
+	}
+	return Glimiter.Allow()
+}
+
+// LimitWait wait on global limiter
+func LimiterWait() {
+	if Glimiter == nil {
+		InitLimiter(10*time.Millisecond, 10, 100)
+	}
+	Glimiter.Wait()
 }
