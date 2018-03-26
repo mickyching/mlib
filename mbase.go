@@ -217,6 +217,11 @@ func (self *Lio) Write(line string) {
 	self.w.WriteString(line + "\n")
 }
 
+// Write write line to lio
+func (self *Lio) Writef(line string, args ...interface{}) {
+	self.w.WriteString(fmt.Sprintf(line, args...) + "\n")
+}
+
 // Flush flush lio to file
 func (self *Lio) Flush() {
 	self.w.Flush()
