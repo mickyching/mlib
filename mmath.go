@@ -58,6 +58,42 @@ func MaxFloat(aa ...interface{}) float64 {
 	return max
 }
 
+// Sum return sum
+func Sum(aa ...interface{}) float64 {
+	sum := 0.0
+	for _, a := range aa {
+		v := Float(a)
+		sum += v
+	}
+	return sum
+}
+
+// Mean return mean value
+func Mean(aa ...interface{}) float64 {
+	if len(aa) == 0 {
+		return 0
+	}
+	return Sum(aa...) / float64(len(aa))
+}
+
+// MSE return mean square error
+// 方差：d2 = 1/n sum(xi-x)2
+// 均方差=标准差：d = sqrt(d2)
+func MSE(aa ...interface{}) float64 {
+	if len(aa) == 0 {
+		return 0
+	}
+
+	dd := 0.0
+	m := Mean(aa...)
+	for _, a := range aa {
+		x := Float(a)
+		dd += (x - m) * (x - m)
+	}
+
+	return math.Sqrt(dd / float64(len(aa)))
+}
+
 // LinearFit return (k, b) fit line y = kx + b
 func LinearFit(sx []float64, sy []float64) (k float64, b float64) {
 	if len(sx) != len(sy) {
