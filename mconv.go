@@ -1,6 +1,7 @@
 package mlib
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"math"
@@ -295,4 +296,18 @@ func JsonLoad(fname string, v interface{}) {
 	if err != nil {
 		Fatalf(err)
 	}
+}
+
+// Base64Encode return encode string
+func Base64Encode(a string) string {
+	return base64.StdEncoding.EncodeToString([]byte(a))
+}
+
+// Base64Decode return decode string
+func Base64Decode(a string) string {
+	s, err := base64.StdEncoding.DecodeString(a)
+	if err != nil {
+		return ""
+	}
+	return string(s)
 }
