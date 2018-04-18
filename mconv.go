@@ -74,6 +74,15 @@ func Float(a interface{}) float64 {
 	return 0.0
 }
 
+// Range convert range string to float value
+func Range(s string) (float64, float64) {
+	a := strings.Split(s, ",")
+	if len(a) == 1 {
+		return Float(a[0]), Float(a[0])
+	}
+	return Float(a[0]), Float(a[1])
+}
+
 // Time convert string/int to time
 // string format 'YY-mm-dd HH:MM:SS.XXX'
 // int format unix-timestamp
