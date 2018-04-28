@@ -14,9 +14,7 @@ import (
 	"unicode/utf8"
 )
 
-// Int convert int/float/string to int
-func Int(a interface{}) int64 {
-	val := reflect.ValueOf(a)
+func vint(val reflect.Value) int64 {
 	switch val.Kind() {
 	case reflect.Bool:
 		if val.Bool() {
@@ -43,10 +41,7 @@ func Int(a interface{}) int64 {
 	}
 	return 0
 }
-
-// Float convert int/float/string to float
-func Float(a interface{}) float64 {
-	val := reflect.ValueOf(a)
+func vfloat(val reflect.Value) float64 {
 	switch val.Kind() {
 	case reflect.Bool:
 		if val.Bool() {
@@ -72,6 +67,38 @@ func Float(a interface{}) float64 {
 		Fatalf("unsupported type %v", val.Kind())
 	}
 	return 0.0
+}
+// Int convert int/float/string to int
+func Int(a interface{}) int64 {
+	val := reflect.ValueOf(a)
+	return vint(val)
+}
+
+// Float convert int/float/string to float
+func Float(a interface{}) float64 {
+	val := reflect.ValueOf(a)
+	return vfloat(val)
+}
+
+// Floats convert []a to []a.name
+func Floats(a interface{}, name string) []float64 {
+	val := reflect.ValueOf(a)
+	switch val.Kind() {
+	case reflect.Slice:
+		fs := []float64{}
+		for i := 0; i < val.Len(); i++ {
+			v := val.Index(i)
+			if v.Kind() == reflect.Struct {
+				v = v.FieldByName(name)
+			} else {
+				v = v.Elem().FieldByName(name)
+			}
+			fs = append(fs, vfloat(v))
+		}
+		return fs
+	default:
+		panic("invalid type")
+	}
 }
 
 // Range convert range string to float value

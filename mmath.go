@@ -1,97 +1,84 @@
 package mlib
 
-import "math"
+import (
+	"math"
+)
 
-// MinMaxInt returns min/max from int array
-func MinMaxInt(aa ...interface{}) (int64, int64) {
-	min := int64(math.MaxInt64)
-	max := -min
-	for _, a := range aa {
-		v := Int(a)
-		if v < min {
-			min = v
-		}
-		if v > max {
-			max = v
+func IsMin(m float64, a ...float64) bool {
+	if len(a) == 0 {
+		return true
+	}
+	for _, v := range a {
+		if v < m {
+			return false
 		}
 	}
-	return min, max
+	return true
 }
-
-// MinInt returns min from int array
-func MinInt(aa ...interface{}) int64 {
-	min, _ := MinMaxInt(aa...)
-	return min
-}
-
-// MaxInt returns max from int array
-func MaxInt(aa ...interface{}) int64 {
-	_, max := MinMaxInt(aa...)
-	return max
-}
-
-// MinMaxFloat returns min/max from float array
-func MinMaxFloat(aa ...interface{}) (float64, float64) {
-	min := math.MaxFloat64
-	max := -min
-	for _, a := range aa {
-		v := Float(a)
-		if v < min {
-			min = v
-		}
-		if v > max {
-			max = v
+func IsMax(m float64, a ...float64) bool {
+	if len(a) == 0 {
+		return true
+	}
+	for _, v := range a {
+		if v > m {
+			return false
 		}
 	}
-	return min, max
+	return true
 }
-
-// MinFloat returns min from float array
-func MinFloat(aa ...interface{}) float64 {
-	min, _ := MinMaxFloat(aa...)
-	return min
+func Min(a ...float64) (int, float64) {
+	if len(a) == 0 {
+		return -1, 0.0
+	}
+	mii, min := 0, a[0]
+	for i, v := range a {
+		if v < min {
+			mii, min = i, v
+		}
+	}
+	return mii, min
 }
-
-// MaxFloat returns max from float array
-func MaxFloat(aa ...interface{}) float64 {
-	_, max := MinMaxFloat(aa...)
-	return max
+func Max(a ...float64) (int, float64) {
+	if len(a) == 0 {
+		return -1, 0.0
+	}
+	mai, max := 0, a[0]
+	for i, v := range a {
+		if v > max {
+			mai, max = i, v
+		}
+	}
+	return mai, max
 }
-
-// Sum return sum
-func Sum(aa ...interface{}) float64 {
+func Sum(a ...float64) float64 {
 	sum := 0.0
-	for _, a := range aa {
-		v := Float(a)
+	for _, v := range a {
 		sum += v
 	}
 	return sum
 }
-
-// Mean return mean value
-func Mean(aa ...interface{}) float64 {
-	if len(aa) == 0 {
+func Mean(a ...float64) float64 {
+	if len(a) == 0 {
 		return 0
 	}
-	return Sum(aa...) / float64(len(aa))
+	return Sum(a...) / float64(len(a))
 }
 
 // MSE return mean square error
 // 方差：d2 = 1/n sum(xi-x)2
 // 均方差=标准差：d = sqrt(d2)
-func MSE(aa ...interface{}) float64 {
-	if len(aa) == 0 {
+func MSE(a ...float64) float64 {
+	if len(a) == 0 {
 		return 0
 	}
 
 	dd := 0.0
-	m := Mean(aa...)
-	for _, a := range aa {
-		x := Float(a)
+	m := Mean(a...)
+	for _, x := range a {
 		dd += (x - m) * (x - m)
 	}
 
-	return math.Sqrt(dd / float64(len(aa)))
+	return math.Sqrt(dd / float64(len(a)))
 }
 
 // LinearFit return (k, b) fit line y = kx + b
